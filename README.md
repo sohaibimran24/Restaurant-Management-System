@@ -1,22 +1,24 @@
-# 🍽️ Restaurant Management System
+# 🍽️ ZayQa — Smart Food Ordering System
 
-A Restaurant Management System built using Microsoft SQL Server.
+A full-stack Smart Food Ordering System with a SQL Server backend and a beautiful frontend interface.
 
 ## 🚀 About The Project
-This system manages complete restaurant operations including menu management, table booking, order processing, billing with GST, and sales reporting — all through a structured SQL database.
+ZayQa is a complete online food ordering platform managing restaurants, menus, customers, orders, and payments — with a sleek dark-themed frontend UI and a fully normalized SQL Server database backend.
 
 ## ✨ Features
-- Menu management by category
-- Table and customer management
+- Multi-restaurant menu browsing
+- Customer registration and login
 - Order placement and tracking
-- Automatic bill generation with 16% GST
+- Automatic order total calculation via SQL Triggers
+- JazzCash, EasyPaisa, Cash & Card payment support
 - Stored Procedures for core operations
-- Views for sales reports and order details
-- Most popular items tracking
+- Views for order summaries and full menu
+- Beautiful dark-themed frontend UI
 
 ## 🛠️ Built With
-- Microsoft SQL Server
-- T-SQL (Stored Procedures, Views, Computed Columns)
+- Microsoft SQL Server (T-SQL)
+- Stored Procedures, Triggers, Views
+- HTML, CSS, JavaScript (Frontend)
 - Database Design & Normalization
 
 ## 👨‍💻 Author
