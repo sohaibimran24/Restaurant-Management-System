@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ZayQa – Smart Food Ordering</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  /* ── CSS Variables ── */
+  :root {
+    --bg:        #0e0d0b;
+    --surface:   #1a1814;
+    --card:      #221f1a;
+    --border:    #2e2a23;
+    --accent:    #e8a04a;
+    --accent2:   #c96b2e;
+    --text:      #f0ead8;
+    --muted:     #7a7060;
+    --success:   #5fa87a;
+    --danger:    #c95a5a;
+    --radius:    14px;
+    --trans:     0.25s cubic-bezier(.4,0,.2,1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Grain overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: .6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: rgba(14,13,11,.92);
+    backdrop-filter: blur(16px);
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: -.5px;
+    color: var(--accent);
+  }
+  .logo span { color: var(--text); font-style: italic; font-weight: 400; }
+
+  nav { display: flex; gap: .4rem; }
+  .nav-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .85rem;
+    font-weight: 500;
+    padding: .45rem 1.1rem;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all var(--trans);
+  }
+  .nav-btn:hover, .nav-btn.active {
+    border-color: var(--border);
+    color: var(--text);
+    background: var(--surface);
+  }
+  .nav-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .cart-btn {
+    position: relative;
+    background: var(--accent);
+    color: #0e0d0b;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: .85rem;
+    padding: .5rem 1.2rem;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all var(--trans);
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .cart-btn:hover { background: #f0b060; transform: translateY(-1px); }
+  .cart-count {
+    background: #0e0d0b;
+    color: var(--accent);
+    border-radius: 99px;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: .1rem .45rem;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; animation: fadeIn .3s ease; }
+  .page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 68vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 30%, rgba(232,160,74,.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(232,160,74,.1);
+    border: 1px solid rgba(232,160,74,.25);
+    padding: .35rem 1rem;
+    border-radius: 99px;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    line-height: 1.1;
+    max-width: 680px;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 em { color: var(--accent); font-style: italic; }
+  .hero p {
+    color: var(--muted);
+    max-width: 460px;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+    font-size: 1rem;
+  }
+  .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: .9rem;
+    padding: .75rem 1.8rem;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all var(--trans);
+    border: none;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #0e0d0b; }
+  .btn-primary:hover { background: #f0b060; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,160,74,.3); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-sm { padding: .5rem 1.2rem; font-size: .82rem; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { filter: brightness(1.1); }
+
+  /* ── SECTION ── */
+  .section { padding: 3rem 2.5rem; max-width: 1100px; margin: 0 auto; }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    margin-bottom: .4rem;
+  }
+  .section-sub { color: var(--muted); font-size: .9rem; margin-bottom: 2rem; }
+
+  /* ── RESTAURANT FILTER ── */
+  .filter-bar { display: flex; gap: .5rem; margin-bottom: 1.8rem; flex-wrap: wrap; }
+  .filter-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .8rem;
+    font-weight: 500;
+    padding: .4rem 1rem;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all var(--trans);
+  }
+  .filter-chip:hover, .filter-chip.active {
+    background: rgba(232,160,74,.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── RESTAURANT CARDS ── */
+  .restaurant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
+  .restaurant-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all var(--trans);
+    position: relative;
+    overflow: hidden;
+  }
+  .restaurant-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transform: scaleX(0);
+    transition: transform var(--trans);
+  }
+  .restaurant-card:hover { border-color: rgba(232,160,74,.4); transform: translateY(-3px); }
+  .restaurant-card:hover::before { transform: scaleX(1); }
+  .restaurant-card.selected { border-color: var(--accent); background: rgba(232,160,74,.05); }
+  .restaurant-card.selected::before { transform: scaleX(1); }
+  .r-name { font-family: 'Playfair Display', serif; font-size: 1.15rem; margin-bottom: .3rem; }
+  .r-location { color: var(--muted); font-size: .82rem; display: flex; align-items: center; gap: .3rem; }
+  .r-badge { display: inline-block; background: rgba(232,160,74,.15); color: var(--accent); font-size: .72rem; font-weight: 600; padding: .2rem .6rem; border-radius: 99px; margin-top: .6rem; }
+
+  /* ── MENU ── */
+  .menu-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .back-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: .4rem .9rem;
+    border-radius: 99px;
+    cursor: pointer;
+    font-size: .82rem;
+    transition: all var(--trans);
+    display: flex; align-items: center; gap: .4rem;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .category-group { margin-bottom: 2rem; }
+  .category-label {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+  .menu-item-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    transition: all var(--trans);
+  }
+  .menu-item-card:hover { border-color: rgba(232,160,74,.3); }
+  .item-name { font-weight: 600; font-size: .95rem; }
+  .item-price { color: var(--accent); font-weight: 700; font-size: 1.05rem; margin-top: auto; }
+  .qty-row { display: flex; align-items: center; gap: .6rem; margin-top: .4rem; }
+  .qty-btn {
+    width: 28px; height: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 99px;
+    cursor: pointer;
+    font-size: 1rem; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: all var(--trans);
+  }
+  .qty-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .qty-val { font-weight: 600; min-width: 20px; text-align: center; }
+  .add-btn {
+    background: var(--accent);
+    color: #0e0d0b;
+    border: none;
+    border-radius: 99px;
+    padding: .35rem .9rem;
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: auto;
+    transition: all var(--trans);
+  }
+  .add-btn:hover { background: #f0b060; }
+
+  /* ── CART PANEL ── */
+  .cart-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: flex-end;
+  }
+  .cart-overlay.open { display: flex; }
+  .cart-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    width: 380px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn .3s ease;
+  }
+  @keyframes slideIn { from { transform: translateX(100%); } to { transform: none; } }
+  .cart-panel-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cart-panel-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; }
+  .close-cart {
+    background: transparent; border: none; color: var(--muted);
+    font-size: 1.3rem; cursor: pointer; padding: .2rem; transition: color var(--trans);
+  }
+  .close-cart:hover { color: var(--text); }
+  .cart-items { flex: 1; overflow-y: auto; padding: 1rem 1.5rem; }
+  .cart-item {
+    display: flex; align-items: center; gap: 1rem;
+    padding: .9rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cart-item-info { flex: 1; }
+  .cart-item-name { font-weight: 600; font-size: .9rem; }
+  .cart-item-sub { color: var(--muted); font-size: .8rem; }
+  .cart-item-remove { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; padding: .2rem; }
+  .cart-footer { padding: 1.5rem; border-top: 1px solid var(--border); }
+  .cart-total { display: flex; justify-content: space-between; margin-bottom: 1.2rem; font-weight: 600; font-size: 1.05rem; }
+  .cart-total span:last-child { color: var(--accent); }
+  .empty-cart { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+  .empty-cart .icon { font-size: 2.5rem; margin-bottom: .8rem; }
+
+  /* ── AUTH FORMS ── */
+  .auth-wrap {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .auth-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+  }
+  .auth-card::before {
+    content: '';
+    position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .auth-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; margin-bottom: .3rem; }
+  .auth-sub { color: var(--muted); font-size: .85rem; margin-bottom: 1.8rem; }
+  .auth-tabs { display: flex; gap: .5rem; margin-bottom: 1.8rem; }
+  .auth-tab {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: .85rem;
+    padding: .6rem;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all var(--trans);
+  }
+  .auth-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0e0d0b;
+  }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom: 1.1rem; }
+  label { display: block; font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: .45rem; letter-spacing: .5px; text-transform: uppercase; }
+  input, select, textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .9rem;
+    padding: .75rem 1rem;
+    border-radius: 10px;
+    outline: none;
+    transition: border-color var(--trans);
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+  select option { background: var(--surface); }
+
+  /* ── TOAST ── */
+  .toast-wrap {
+    position: fixed; bottom: 1.5rem; right: 1.5rem;
+    z-index: 9000;
+    display: flex; flex-direction: column; gap: .6rem;
+  }
+  .toast {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .8rem 1.2rem;
+    font-size: .85rem;
+    min-width: 220px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    display: flex; align-items: center; gap: .7rem;
+    animation: toastIn .3s ease;
+  }
+  .toast.success { border-color: var(--success); }
+  .toast.error { border-color: var(--danger); }
+  .toast-icon { font-size: 1rem; }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+
+  /* ── ORDER SUCCESS ── */
+  .order-success {
+    text-align: center;
+    padding: 3rem 2rem;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .success-icon { font-size: 4rem; margin-bottom: 1rem; animation: pop .4s ease; }
+  @keyframes pop { from { transform: scale(.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .order-success h2 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: .8rem; color: var(--accent); }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+  /* ── BADGE ── */
+  .badge {
+    display: inline-flex; align-items: center;
+    font-size: .7rem; font-weight: 700;
+    padding: .2rem .6rem; border-radius: 99px;
+  }
+  .badge-pending { background: rgba(232,160,74,.15); color: var(--accent); }
+  .badge-completed { background: rgba(95,168,122,.15); color: var(--success); }
+
+  /* ── PAYMENT SELECT ── */
+  .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin-bottom: 1.2rem; }
+  .payment-option {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .9rem 1rem;
+    cursor: pointer;
+    transition: all var(--trans);
+    text-align: center;
+    font-size: .85rem;
+    font-weight: 500;
+  }
+  .payment-option.selected {
+    border-color: var(--accent);
+    background: rgba(232,160,74,.1);
+    color: var(--accent);
+  }
+  .payment-option:hover { border-color: var(--accent); }
+  .payment-icon { font-size: 1.3rem; display: block; margin-bottom: .3rem; }
+
+  /* ── USER TAG ── */
+  .user-tag {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .82rem; color: var(--muted);
+  }
+  .user-avatar {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border-radius: 99px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .75rem; font-weight: 700; color: #0e0d0b;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">Zay<span>Qa</span></div>
+  <nav>
+    <button class="nav-btn active" onclick="showPage('home')">Home</button>
+    <button class="nav-btn" onclick="showPage('menu')">Menu</button>
+    <button class="nav-btn" id="authNavBtn" onclick="showPage('auth')">Sign In</button>
+  </nav>
+  <div style="display:flex;align-items:center;gap:.8rem">
+    <div id="userTag" class="user-tag" style="display:none"></div>
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Cart
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- ── TOAST CONTAINER ── -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ── CART OVERLAY ── -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCartOutside(event)">
+  <div class="cart-panel">
+    <div class="cart-panel-header">
+      <div class="cart-panel-title">Your Cart</div>
+      <button class="close-cart" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cartItemsEl"></div>
+    <div class="cart-footer" id="cartFooterEl">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cartTotalEl">Rs 0</span>
+      </div>
+      <div class="payment-grid" id="paymentGrid"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="placeOrder()">Place Order →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: HOME
+════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <span class="hero-tag">✦ Lahore's Finest, Delivered</span>
+    <h1>Food that feels like<br/><em>home.</em></h1>
+    <p>Order from the best restaurants in Lahore. Fresh, fast, and full of flavour — right to your door.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="showPage('menu')">Explore Menu →</button>
+      <button class="btn btn-outline" onclick="showPage('auth')">Create Account</button>
+    </div>
+  </section>
+
+  <div class="section">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;max-width:700px">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center">
+        <div style="font-size:1.8rem;margin-bottom:.5rem">🍽️</div>
+        <div style="font-weight:600;margin-bottom:.3rem">3 Restaurants</div>
+        <div style="color:var(--muted);font-size:.8rem">Curated picks</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center">
+        <div style="font-size:1.8rem;margin-bottom:.5rem">⚡</div>
+        <div style="font-weight:600;margin-bottom:.3rem">Fast Delivery</div>
+        <div style="color:var(--muted);font-size:.8rem">Real-time tracking</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center">
+        <div style="font-size:1.8rem;margin-bottom:.5rem">💳</div>
+        <div style="font-weight:600;margin-bottom:.3rem">Easy Payment</div>
+        <div style="color:var(--muted);font-size:.8rem">Cash, Card, JazzCash</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: MENU
+════════════════════════════════════════ -->
+<div class="page" id="page-menu">
+  <div class="section">
+    <!-- Restaurant Selection -->
+    <div id="restaurantView">
+      <div class="section-title">Pick a Restaurant</div>
+      <div class="section-sub">Choose where you'd like to order from</div>
+      <div class="restaurant-grid" id="restaurantGrid"></div>
+    </div>
+
+    <!-- Menu View -->
+    <div id="menuView" style="display:none">
+      <div class="menu-header">
+        <button class="back-btn" onclick="showRestaurants()">← Back</button>
+        <div>
+          <div class="section-title" id="menuRestName"></div>
+          <div style="color:var(--muted);font-size:.82rem" id="menuRestLoc"></div>
+        </div>
+      </div>
+      <div id="menuItemsEl"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: AUTH
+════════════════════════════════════════ -->
+<div class="page" id="page-auth">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-title">Welcome</div>
+      <div class="auth-sub">Sign in or create an account to start ordering</div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••"/>
+        </div>
+        <div style="background:rgba(232,160,74,.08);border:1px solid rgba(232,160,74,.2);border-radius:10px;padding:.9rem 1rem;margin-bottom:1.2rem;font-size:.8rem;color:var(--muted)">
+          💡 <strong style="color:var(--accent)">Demo accounts:</strong> ali@example.com or sara@example.com — password: <code style="background:var(--surface);padding:.1rem .4rem;border-radius:4px">password123</code>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="login()">Sign In →</button>
+        <hr class="divider"/>
+        <p style="text-align:center;font-size:.82rem;color:var(--muted)">Don't have an account? <a onclick="switchTab('register')" style="color:var(--accent);cursor:pointer">Register</a></p>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="registerForm" style="display:none">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="regName" placeholder="Ali Hassan"/>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="regEmail" placeholder="you@example.com"/>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" id="regPhone" placeholder="0300-1234567"/>
+        </div>
+        <div class="form-group">
+          <label>Delivery Address</label>
+          <input type="text" id="regAddress" placeholder="House #, Street, Area, City"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" placeholder="••••••••"/>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="register()">Create Account →</button>
+        <hr class="divider"/>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;font-size:.78rem;color:var(--muted)">
+          <strong style="color:var(--text);display:block;margin-bottom:.5rem">📋 SQL Generated:</strong>
+          <code id="registerSQL" style="color:var(--accent);white-space:pre-wrap;word-break:break-all;line-height:1.6">Fill the form above to preview the SQL</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PAGE: ORDER SUCCESS
+════════════════════════════════════════ -->
+<div class="page" id="page-success">
+  <div class="section">
+    <div class="order-success">
+      <div class="success-icon">🎉</div>
+      <h2>Order Placed!</h2>
+      <p style="color:var(--muted);line-height:1.7;margin-bottom:1.5rem">Your order has been received and is being prepared. Here's the SQL that would run on your server:</p>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;text-align:left;margin-bottom:1.5rem">
+        <div style="font-size:.72rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:.8rem">Generated SQL</div>
+        <code id="orderSQL" style="font-size:.8rem;color:var(--text);white-space:pre-wrap;word-break:break-all;line-height:1.7"></code>
+      </div>
+      <button class="btn btn-outline" onclick="showPage('menu')">Order Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+//  DATA — mirrors the SQL sample data
+// ══════════════════════════════════════
+const DB = {
+  restaurants: [
+    { id: 1, name: 'Lahori Desi Dhaba',  location: 'Gulberg, Lahore',       contact: '042-35761234' },
+    { id: 2, name: 'Bundu Khan',          location: 'MM Alam Road, Lahore',  contact: '042-35761000' },
+    { id: 3, name: 'Salt n Pepper',       location: 'DHA Phase 5, Lahore',   contact: '042-35870000' },
+  ],
+  menuItems: [
+    // Lahori Desi Dhaba
+    { id: 1, restaurantId: 1, name: 'Nihari',        category: 'Main',    price: 350 },
+    { id: 2, restaurantId: 1, name: 'Paye',           category: 'Main',    price: 300 },
+    { id: 3, restaurantId: 1, name: 'Lassi (Sweet)',  category: 'Drink',   price: 120 },
+    { id: 4, restaurantId: 1, name: 'Naan',           category: 'Bread',   price: 40  },
+    { id: 5, restaurantId: 1, name: 'Kheer',          category: 'Dessert', price: 150 },
+    // Bundu Khan
+    { id: 6,  restaurantId: 2, name: 'Chicken Tikka', category: 'Main',    price: 650 },
+    { id: 7,  restaurantId: 2, name: 'Seekh Kebab',   category: 'Main',    price: 550 },
+    { id: 8,  restaurantId: 2, name: 'Raita',          category: 'Side',    price: 80  },
+    { id: 9,  restaurantId: 2, name: 'Roghni Naan',   category: 'Bread',   price: 60  },
+    { id: 10, restaurantId: 2, name: 'Gulab Jamun',   category: 'Dessert', price: 120 },
+    // Salt n Pepper
+    { id: 11, restaurantId: 3, name: 'Sizzling Chicken', category: 'Main',    price: 850  },
+    { id: 12, restaurantId: 3, name: 'BBQ Platter',       category: 'Main',    price: 1200 },
+    { id: 13, restaurantId: 3, name: 'Garlic Bread',      category: 'Side',    price: 250  },
+    { id: 14, restaurantId: 3, name: 'Cold Coffee',        category: 'Drink',   price: 280  },
+    { id: 15, restaurantId: 3, name: 'Brownie',            category: 'Dessert', price: 220  },
+  ],
+  customers: [
+    { id: 1, name: 'Ali Hassan',  email: 'ali@example.com',  phone: '0300-1234567', address: 'House 5, Block B, Gulberg',  passwordHash: 'demo_hash_password123' },
+    { id: 2, name: 'Sara Ahmed',  email: 'sara@example.com', phone: '0321-9876543', address: 'Flat 2A, DHA Phase 6',       passwordHash: 'demo_hash_password123' },
+  ],
+  nextCustomerId: 3,
+  nextOrderId: 3,
+};
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let state = {
+  currentPage: 'home',
+  user: null,
+  cart: [],   // [{item, qty}]
+  selectedRestaurant: null,
+  selectedPayment: 'Cash',
+};
+
+// ══════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const btn = [...document.querySelectorAll('.nav-btn')].find(b => b.getAttribute('onclick')?.includes(id));
+  if (btn) btn.classList.add('active');
+  state.currentPage = id;
+  if (id === 'menu') renderRestaurants();
+}
+
+// ══════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'?i===0:i===1)));
+  document.getElementById('loginForm').style.display   = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+function simpleHash(str) {
+  // Deterministic "hash" for demo purposes — not cryptographic
+  if (str === 'password123') return 'demo_hash_password123';
+  let h = 0;
+  for (let c of str) h = (Math.imul(31, h) + c.charCodeAt(0)) | 0;
+  return 'hash_' + Math.abs(h).toString(16);
+}
+
+function login() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPassword').value;
+  if (!email || !pw) { toast('Please fill in all fields', 'error'); return; }
+  const hash = simpleHash(pw);
+  const cust = DB.customers.find(c => c.email === email && c.passwordHash === hash);
+  if (!cust) { toast('Invalid email or password', 'error'); return; }
+  setUser(cust);
+  toast(`Welcome back, ${cust.name}! 👋`, 'success');
+  showPage('home');
+}
+
+function register() {
+  const name    = document.getElementById('regName').value.trim();
+  const email   = document.getElementById('regEmail').value.trim();
+  const phone   = document.getElementById('regPhone').value.trim();
+  const address = document.getElementById('regAddress').value.trim();
+  const pw      = document.getElementById('regPassword').value;
+  if (!name || !email || !pw) { toast('Name, email and password are required', 'error'); return; }
+  if (DB.customers.find(c => c.email === email)) { toast('Email already registered', 'error'); return; }
+  const hash = simpleHash(pw);
+  const newCust = { id: DB.nextCustomerId++, name, email, phone, address, passwordHash: hash };
+  DB.customers.push(newCust);
+
+  // Show SQL
+  const sql = `EXEC sp_RegisterCustomer\n  @name    = '${name}',\n  @email   = '${email}',\n  @phone   = '${phone||'NULL'}',\n  @address = '${address||'NULL'}',\n  @password= '${hash}';`;
+  document.getElementById('registerSQL').textContent = sql;
+
+  setUser(newCust);
+  toast(`Account created! Welcome, ${name} 🎉`, 'success');
+
+  setTimeout(() => showPage('home'), 800);
+}
+
+function setUser(cust) {
+  state.user = cust;
+  const tag = document.getElementById('userTag');
+  tag.style.display = 'flex';
+  tag.innerHTML = `<div class="user-avatar">${cust.name[0].toUpperCase()}</div><span>${cust.name.split(' ')[0]}</span>`;
+  document.getElementById('authNavBtn').textContent = 'Sign Out';
+  document.getElementById('authNavBtn').onclick = logout;
+}
+
+function logout() {
+  state.user = null;
+  state.cart = [];
+  document.getElementById('userTag').style.display = 'none';
+  document.getElementById('authNavBtn').textContent = 'Sign In';
+  document.getElementById('authNavBtn').onclick = () => showPage('auth');
+  updateCartUI();
+  toast('Signed out', 'success');
+  showPage('home');
+}
+
+// Live SQL preview while typing in register
+['regName','regEmail','regPhone','regAddress','regPassword'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', () => {
+    const n = document.getElementById('regName').value || 'YourName';
+    const e = document.getElementById('regEmail').value || 'you@example.com';
+    const p = document.getElementById('regPhone').value || 'NULL';
+    const a = document.getElementById('regAddress').value || 'NULL';
+    const pw = document.getElementById('regPassword').value || '';
+    const h = pw ? simpleHash(pw) : '...hash...';
+    document.getElementById('registerSQL').textContent =
+      `EXEC sp_RegisterCustomer\n  @name    = '${n}',\n  @email   = '${e}',\n  @phone   = '${p}',\n  @address = '${a}',\n  @password= '${h}';`;
+  });
+});
+
+// ══════════════════════════════════════
+//  RESTAURANTS
+// ══════════════════════════════════════
+function renderRestaurants() {
+  const grid = document.getElementById('restaurantGrid');
+  grid.innerHTML = DB.restaurants.map(r => `
+    <div class="restaurant-card" onclick="selectRestaurant(${r.id})">
+      <div class="r-name">${r.name}</div>
+      <div class="r-location">📍 ${r.location}</div>
+      <div class="r-badge">📞 ${r.contact}</div>
+    </div>
+  `).join('');
+  document.getElementById('restaurantView').style.display = '';
+  document.getElementById('menuView').style.display = 'none';
+}
+
+function selectRestaurant(id) {
+  state.selectedRestaurant = DB.restaurants.find(r => r.id === id);
+  state.cart = []; // clear cart when switching restaurant
+  updateCartUI();
+  renderMenu(id);
+}
+
+function showRestaurants() {
+  state.selectedRestaurant = null;
+  renderRestaurants();
+}
+
+// ══════════════════════════════════════
+//  MENU
+// ══════════════════════════════════════
+function renderMenu(restaurantId) {
+  const r = state.selectedRestaurant;
+  document.getElementById('menuRestName').textContent = r.name;
+  document.getElementById('menuRestLoc').textContent  = '📍 ' + r.location;
+  document.getElementById('restaurantView').style.display = 'none';
+  document.getElementById('menuView').style.display = '';
+
+  const items = DB.menuItems.filter(i => i.restaurantId === restaurantId);
+  const categories = [...new Set(items.map(i => i.category))];
+
+  document.getElementById('menuItemsEl').innerHTML = categories.map(cat => `
+    <div class="category-group">
+      <div class="category-label">${cat}</div>
+      <div class="menu-grid">
+        ${items.filter(i => i.category === cat).map(item => `
+          <div class="menu-item-card" id="card-${item.id}">
+            <div class="item-name">${item.name}</div>
+            <div class="item-price">Rs ${item.price.toLocaleString()}</div>
+            <div class="qty-row">
+              <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
+              <span class="qty-val" id="qty-${item.id}">0</span>
+              <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
+              <button class="add-btn" onclick="addToCart(${item.id})">Add</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════
+//  CART
+// ══════════════════════════════════════
+const qtys = {};
+
+function changeQty(itemId, delta) {
+  qtys[itemId] = Math.max(0, (qtys[itemId] || 0) + delta);
+  const el = document.getElementById('qty-' + itemId);
+  if (el) el.textContent = qtys[itemId];
+}
+
+function addToCart(itemId) {
+  const qty = qtys[itemId] || 1;
+  const item = DB.menuItems.find(i => i.id === itemId);
+  const existing = state.cart.find(c => c.item.id === itemId);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    state.cart.push({ item, qty });
+  }
+  qtys[itemId] = 0;
+  const el = document.getElementById('qty-' + itemId);
+  if (el) el.textContent = 0;
+  updateCartUI();
+  toast(`${item.name} added to cart 🛒`, 'success');
+}
+
+function removeFromCart(itemId) {
+  state.cart = state.cart.filter(c => c.item.id !== itemId);
+  updateCartUI();
+}
+
+function updateCartUI() {
+  const total = state.cart.reduce((s, c) => s + c.item.price * c.qty, 0);
+  const count = state.cart.reduce((s, c) => s + c.qty, 0);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotalEl').textContent = 'Rs ' + total.toLocaleString();
+
+  const el = document.getElementById('cartItemsEl');
+  if (state.cart.length === 0) {
+    el.innerHTML = `<div class="empty-cart"><div class="icon">🛒</div><div>Your cart is empty</div><div style="font-size:.8rem;color:var(--muted);margin-top:.4rem">Add items from the menu</div></div>`;
+    document.getElementById('cartFooterEl').style.display = 'none';
+  } else {
+    document.getElementById('cartFooterEl').style.display = '';
+    el.innerHTML = state.cart.map(c => `
+      <div class="cart-item">
+        <div class="cart-item-info">
+          <div class="cart-item-name">${c.item.name}</div>
+          <div class="cart-item-sub">Rs ${c.item.price.toLocaleString()} × ${c.qty} = Rs ${(c.item.price*c.qty).toLocaleString()}</div>
+        </div>
+        <button class="cart-item-remove" onclick="removeFromCart(${c.item.id})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  // Payment options
+  const methods = ['Cash','Card','JazzCash','EasyPaisa'];
+  const icons   = ['💵','💳','📱','📲'];
+  document.getElementById('paymentGrid').innerHTML = methods.map((m,i) => `
+    <div class="payment-option ${state.selectedPayment===m?'selected':''}" onclick="selectPayment('${m}')">
+      <span class="payment-icon">${icons[i]}</span>${m}
+    </div>
+  `).join('');
+}
+
+function selectPayment(method) {
+  state.selectedPayment = method;
+  updateCartUI();
+}
+
+function openCart()  { document.getElementById('cartOverlay').classList.add('open'); updateCartUI(); }
+function closeCart() { document.getElementById('cartOverlay').classList.remove('open'); }
+function closeCartOutside(e) { if (e.target.id === 'cartOverlay') closeCart(); }
+
+// ══════════════════════════════════════
+//  ORDER
+// ══════════════════════════════════════
+function placeOrder() {
+  if (!state.user) {
+    toast('Please sign in to place an order', 'error');
+    closeCart();
+    setTimeout(() => showPage('auth'), 300);
+    return;
+  }
+  if (state.cart.length === 0) { toast('Your cart is empty', 'error'); return; }
+
+  const orderId  = DB.nextOrderId++;
+  const itemIds  = state.cart.map(c => c.item.id).join(',');
+  const qtysStr  = state.cart.map(c => c.qty).join(',');
+  const total    = state.cart.reduce((s,c) => s + c.item.price*c.qty, 0);
+
+  const insertOrder = `-- 1. Create order\nEXEC sp_PlaceOrder\n  @customer_id = ${state.user.id},\n  @item_ids    = '${itemIds}',\n  @quantities  = '${qtysStr}';\n\n-- 2. Record payment\nINSERT INTO dbo.Payment\n  (order_id, payment_method, payment_status, amount)\nVALUES\n  (${orderId}, '${state.selectedPayment}', 'pending', ${total.toFixed(2)});\n\n-- 3. View result\nSELECT * FROM vw_OrderSummary\nWHERE order_id = ${orderId};`;
+
+  document.getElementById('orderSQL').textContent = insertOrder;
+
+  state.cart = [];
+  updateCartUI();
+  closeCart();
+  showPage('success');
+}
+
+// ══════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════
+function toast(msg, type = 'success') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span class="toast-icon">${type==='success'?'✓':'✕'}</span> ${msg}`;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3000);
+}
+
+// Init
+updateCartUI();
+</script>
+</body>
+</html>
